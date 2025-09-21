@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="vi" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý môn học</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root { --brand: #6759ff; --brand-2: #21c1d6; }
+    body { background: radial-gradient(1200px 1200px at 10% -10%, rgba(103,89,255,.08), transparent 60%), radial-gradient(900px 900px at 110% 10%, rgba(33,193,214,.07), transparent 50%); min-height: 100vh; }
+    .navbar-blur { backdrop-filter: saturate(1.5) blur(6px); background: color-mix(in srgb, var(--bs-body-bg) 75%, transparent); border-bottom: 1px solid var(--bs-border-color); }
+    .page-title { letter-spacing: .3px; background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stat-card { border: 1px solid var(--bs-border-color); box-shadow: 0 10px 25px -12px rgba(0,0,0,.15); }
+    .table-sticky thead th { position: sticky; top: 0; z-index: 1; }
+    .fab { position: fixed; right: 24px; bottom: 24px; z-index: 1040; border-radius: 999px; padding: .9rem 1.1rem; box-shadow: 0 12px 30px -10px rgba(103,89,255,.6); background: linear-gradient(135deg, var(--brand), var(--brand-2)); border: none; }
+    .tag { border: 1px dashed var(--bs-border-color); padding: .35rem .6rem; border-radius: 999px; font-size: .8rem; color: var(--bs-secondary-color); }
+    .search-wrap { border: 1px solid var(--bs-border-color); border-radius: 14px; }
+    .search-wrap .form-control, .search-wrap .form-select { border: none; box-shadow: none; }
+    .offcanvas-rounded { border-top-left-radius: 18px; border-top-right-radius: 18px; }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg sticky-top navbar-blur">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <span class="badge rounded-pill" style="background: linear-gradient(135deg, var(--brand), var(--brand-2));">QL</span>
+        <strong>Quản lý môn học</strong>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <button id="themeToggle" class="btn btn-outline-secondary btn-sm"><i class="bi bi-moon-stars"></i></button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFilters">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="container py-4">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
+      <div>
+        <h1 class="display-6 fw-semibold page-title mb-1">Danh sách môn học</h1>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="tag"><i class="bi bi-collection me-1"></i> <span id="tagTotal">—</span> môn</span>
+          <span class="tag"><i class="bi bi-people me-1"></i> 56 giảng viên</span>
+          <span class="tag"><i class="bi bi-graph-up me-1"></i> 12 khoa</span>
+        </div>
+      </div>
+      <div class="search-wrap p-2 bg-body d-flex flex-wrap gap-2 align-items-center">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+          <input id="searchInput" type="text" class="form-control" placeholder="Tìm theo mã hoặc tên môn..." aria-label="Search">
+        </div>
+        <select id="filterKhoa" class="form-select" style="max-width: 220px">
+          <option value="">Tất cả khoa</option>
+          <option>CNTT</option>
+          <option>Kinh tế</option>
+          <option>Điện - Điện tử</option>
+        </select>
+        <select id="filterTinChi" class="form-select" style="max-width: 180px">
+          <option value="">Tất cả tín chỉ</option>
+          <option value="2">2 tín chỉ</option>
+          <option value="3">3 tín chỉ</option>
+          <option value="4">4 tín chỉ</option>
+        </select>
+        <div class="btn-group">
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdd"><i class="bi bi-plus-lg me-1"></i>Thêm môn</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <section class="container pb-2">
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary">Tổng số môn</div>
+              <div class="h4 mb-0" id="statTotal">—</div>
+            </div>
+            <i class="bi bi-journal-text fs-2 opacity-75"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary">Môn mới gần đây</div>
+              <div class="h4 mb-0" id="statNew">—</div>
+            </div>
+            <i class="bi bi-stars fs-2 opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <main class="container pb-5">
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 table-sticky" id="coursesTable">
+          <thead class="table-light">
+            <tr>
+              <th width="110">Mã môn</th>
+              <th>Tên môn</th>
+              <th width="120">Tín chỉ</th>
+              <th width="180">Giảng viên</th>
+              <th width="140">Khoa</th>
+              <th width="140">Trạng thái</th>
+              <th class="text-end" width="140">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="coursesBody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <small class="text-secondary" id="resultInfo">Hiển thị 0/0</small>
+        <nav><ul class="pagination pagination-sm mb-0" id="pager"></ul></nav>
+      </div>
+    </div>
+  </main>
+
+  <!-- FAB Add -->
+  <button class="btn btn-lg btn-primary fab" data-bs-toggle="modal" data-bs-target="#modalAdd"><i class="bi bi-plus-lg"></i></button>
+
+  <!-- OFFCANVAS (Filters on mobile) -->
+  <div class="offcanvas offcanvas-end offcanvas-rounded" tabindex="-1" id="offcanvasFilters">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Bộ lọc</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="vstack gap-3">
+        <input id="mSearch" type="text" class="form-control" placeholder="Từ khóa">
+        <select id="mKhoa" class="form-select">
+          <option value="">Tất cả khoa</option>
+          <option>CNTT</option>
+          <option>Kinh tế</option>
+          <option>Điện - Điện tử</option>
+        </select>
+        <select id="mTinChi" class="form-select">
+          <option value="">Tất cả tín chỉ</option>
+          <option value="2">2 tín chỉ</option>
+          <option value="3">3 tín chỉ</option>
+          <option value="4">4 tín chỉ</option>
+        </select>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" data-bs-dismiss="offcanvas">Áp dụng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: View details -->
+  <div class="modal fade" id="modalView" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Chi tiết môn học</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Mã môn</dt><dd class="col-sm-8" id="v_ma">—</dd>
+            <dt class="col-sm-4">Tên môn</dt><dd class="col-sm-8" id="v_ten">—</dd>
+            <dt class="col-sm-4">Tín chỉ</dt><dd class="col-sm-8" id="v_tinchi">—</dd>
+            <dt class="col-sm-4">Giảng viên</dt><dd class="col-sm-8" id="v_gv">—</dd>
+            <dt class="col-sm-4">Khoa</dt><dd class="col-sm-8" id="v_khoa">—</dd>
+            <dt class="col-sm-4">Trạng thái</dt><dd class="col-sm-8" id="v_status">—</dd>
+            <dt class="col-sm-4">Ngày tạo</dt><dd class="col-sm-8" id="v_created">—</dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-primary" id="btnViewEdit"><i class="bi bi-pencil me-1"></i>Sửa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit -->
+  <div class="modal fade" id="modalAdd" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content needs-validation" novalidate id="formCourse">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-journal-plus me-2"></i><span id="modalTitle">Thêm môn học</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Mã môn</label>
+              <input name="ma" type="text" class="form-control" required placeholder="CS101">
+              <div class="invalid-feedback">Vui lòng nhập mã môn.</div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Tên môn</label>
+              <input name="ten" type="text" class="form-control" required placeholder="Nhập tên môn">
+              <div class="invalid-feedback">Vui lòng nhập tên môn.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Tín chỉ</label>
+              <input name="tinchi" type="number" class="form-control" min="1" max="6" value="3" required>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Giảng viên</label>
+              <input name="gv" type="text" class="form-control" placeholder="Nguyễn Văn A" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Khoa</label>
+              <select name="khoa" class="form-select" required>
+                <option value="" disabled selected>Chọn khoa</option>
+                <option>CNTT</option>
+                <option>Kinh tế</option>
+                <option>Điện - Điện tử</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Trạng thái</label>
+              <select name="status" class="form-select">
+                <option>Đang mở</option>
+                <option>Tạm dừng</option>
+                <option>Đã kết thúc</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Delete confirm -->
+  <div class="modal fade" id="modalDelete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Xóa môn</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">Bạn có chắc muốn xóa <strong id="delName">môn này</strong>?</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmDel">Xóa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // === Persistence ===
+    const STORAGE_KEY = 'courses_v1';
+    const defaultData = [
+      { ma: 'CS101', ten: 'Lập trình C++ cơ bản', tinchi: 3, gv: 'Nguyễn Văn A', khoa: 'CNTT', status: 'Đang mở', created: '2025-08-30' },
+      { ma: 'CS202', ten: 'Cấu trúc dữ liệu & Giải thuật', tinchi: 4, gv: 'Trần Thị B', khoa: 'CNTT', status: 'Đang mở', created: '2025-07-28' },
+      { ma: 'MK201', ten: 'Marketing căn bản', tinchi: 3, gv: 'Lê Mai D', khoa: 'Kinh tế', status: 'Đang mở', created: '2025-09-01' }
+    ];
+    function loadCourses(){
+      try { const raw = localStorage.getItem(STORAGE_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr)) return arr; } } catch(e){}
+      return [...defaultData];
+    }
+    function saveCourses(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(courses)); }
+
+    // === State & helpers ===
+    let courses = loadCourses();
+    let state = { page: 1, size: 5, q: '', khoa: '', tinchi: '' };
+    let pendingDeleteId = null;
+    const $$ = (sel, root=document) => root.querySelector(sel);
+
+    function fmtBadge(status){
+      const map = { 'Đang mở': 'success', 'Tạm dừng': 'warning', 'Đã kết thúc': 'secondary' };
+      return `<span class="badge text-bg-${map[status]||'secondary'}">${status}</span>`
+    }
+    function toRow(c){
+      return `<tr data-ma="${c.ma}" data-ten="${c.ten}" data-khoa="${c.khoa}" data-tinchi="${c.tinchi}" data-status="${c.status}" data-gv="${c.gv}" data-created="${c.created}">
+        <td class="fw-semibold">${c.ma}</td>
+        <td>${c.ten}</td>
+        <td>${c.tinchi}</td>
+        <td>${c.gv}</td>
+        <td><span class="badge rounded-pill text-bg-light border"><i class="bi bi-building me-1"></i>${c.khoa}</span></td>
+        <td>${fmtBadge(c.status)}</td>
+        <td class="text-end">
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" data-action="view"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-sm btn-outline-primary" data-action="edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger" data-action="del"><i class="bi bi-trash"></i></button>
+          </div>
+        </td>
+      </tr>`
+    }
+
+    function applyFilters(){
+      const q = state.q.toLowerCase().trim();
+      let list = courses.filter(c => (
+        (!q || c.ma.toLowerCase().includes(q) || c.ten.toLowerCase().includes(q)) &&
+        (!state.khoa || c.khoa === state.khoa) &&
+        (!state.tinchi || String(c.tinchi) === String(state.tinchi))
+      ));
+
+      // stats
+      $$('#statTotal').textContent = list.length;
+      $$('#tagTotal').textContent = courses.length;
+      const newest = list.slice().sort((a,b)=> new Date(b.created)-new Date(a.created))[0];
+      $$('#statNew').textContent = newest? newest.ma : '—';
+
+      // pagination
+      const total = list.length; const pages = Math.max(1, Math.ceil(total/state.size));
+      if(state.page>pages) state.page = pages;
+      const start = (state.page-1)*state.size; const end = start + state.size;
+      const pageItems = list.slice(start,end);
+
+      // table
+      $$('#coursesBody').innerHTML = pageItems.map(toRow).join('');
+      $$('#resultInfo').textContent = `Hiển thị ${pageItems.length}/${total}`;
+
+      // pager
+      const pager = $$('#pager');
+      pager.innerHTML = '';
+      for(let i=1;i<=pages;i++){
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i===state.page?' active':'');
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener('click', e=>{ e.preventDefault(); state.page=i; applyFilters(); });
+        pager.appendChild(li);
+      }
+    }
+
+    function toast(msg, variant='success'){
+      const el = document.createElement('div');
+      el.className = 'toast align-items-center text-bg-' + variant;
+      el.role = 'alert'; el.ariaLive = 'assertive'; el.ariaAtomic = 'true';
+      el.innerHTML = `<div class=\"d-flex\"><div class=\"toast-body\">${msg}</div>
+        <button type=\"button\" class=\"btn-close btn-close-white me-2 m-auto\" data-bs-dismiss=\"toast\"></button></div>`;
+      document.getElementById('toastArea').appendChild(el);
+      new bootstrap.Toast(el,{ delay: 2200 }).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // inputs
+      document.getElementById('searchInput').addEventListener('input', e=>{ state.q = e.target.value; state.page=1; applyFilters(); });
+      document.getElementById('filterKhoa').addEventListener('change', e=>{ state.khoa = e.target.value; state.page=1; applyFilters(); });
+      document.getElementById('filterTinChi').addEventListener('change', e=>{ state.tinchi = e.target.value; state.page=1; applyFilters(); });
+
+      // offcanvas sync
+      document.getElementById('mSearch').addEventListener('input', e=> document.getElementById('searchInput').value = (state.q = e.target.value));
+      document.getElementById('mKhoa').addEventListener('change', e=> { state.khoa = e.target.value; document.getElementById('filterKhoa').value = state.khoa; });
+      document.getElementById('mTinChi').addEventListener('change', e=> { state.tinchi = e.target.value; document.getElementById('filterTinChi').value = state.tinchi; });
+
+      // table actions
+      document.getElementById('coursesBody').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button'); if(!btn) return;
+        const tr = e.target.closest('tr'); const ma = tr?.dataset.ma; const ten = tr?.dataset.ten;
+        if(btn.dataset.action==='del'){
+          pendingDeleteId = ma;
+          document.getElementById('delName').textContent = `${ma} — ${ten}`;
+          new bootstrap.Modal('#modalDelete').show();
+        }
+        if(btn.dataset.action==='edit'){
+          const f = document.getElementById('formCourse'); f.reset();
+          f.querySelector('[name=ma]').value = tr.dataset.ma;
+          f.querySelector('[name=ten]').value = tr.dataset.ten;
+          f.querySelector('[name=tinchi]').value = tr.dataset.tinchi;
+          f.querySelector('[name=gv]').value = tr.dataset.gv || tr.children[3].textContent.trim();
+          f.querySelector('[name=khoa]').value = tr.dataset.khoa;
+          f.querySelector('[name=status]').value = tr.dataset.status || tr.children[5].textContent.trim();
+          document.getElementById('modalTitle').textContent = 'Chỉnh sửa môn';
+          new bootstrap.Modal('#modalAdd').show();
+        }
+        if(btn.dataset.action==='view'){
+          document.getElementById('v_ma').textContent = tr.dataset.ma;
+          document.getElementById('v_ten').textContent = tr.dataset.ten;
+          document.getElementById('v_tinchi').textContent = tr.dataset.tinchi;
+          document.getElementById('v_gv').textContent = tr.dataset.gv || tr.children[3].textContent.trim();
+          document.getElementById('v_khoa').textContent = tr.dataset.khoa;
+          document.getElementById('v_status').textContent = tr.dataset.status || tr.children[5].textContent.trim();
+          document.getElementById('v_created').textContent = tr.dataset.created || '—';
+          const mv = new bootstrap.Modal('#modalView');
+          mv.show();
+          document.getElementById('btnViewEdit').onclick = ()=>{
+            mv.hide();
+            const f = document.getElementById('formCourse'); f.reset();
+            f.querySelector('[name=ma]').value = tr.dataset.ma;
+            f.querySelector('[name=ten]').value = tr.dataset.ten;
+            f.querySelector('[name=tinchi]').value = tr.dataset.tinchi;
+            f.querySelector('[name=gv]').value = tr.dataset.gv || tr.children[3].textContent.trim();
+            f.querySelector('[name=khoa]').value = tr.dataset.khoa;
+            f.querySelector('[name=status]').value = tr.dataset.status || tr.children[5].textContent.trim();
+            document.getElementById('modalTitle').textContent = 'Chỉnh sửa môn';
+            new bootstrap.Modal('#modalAdd').show();
+          };
+        }
+      });
+
+      // confirm delete
+      document.getElementById('btnConfirmDel').addEventListener('click', ()=>{
+        if(!pendingDeleteId) return;
+        const idx = courses.findIndex(c=>c.ma===pendingDeleteId);
+        if(idx>-1){ courses.splice(idx,1); saveCourses(); toast('Đã xóa '+pendingDeleteId,'danger'); }
+        pendingDeleteId = null;
+        bootstrap.Modal.getInstance(document.getElementById('modalDelete'))?.hide();
+        applyFilters();
+      });
+
+      // form submit add/edit
+      document.getElementById('formCourse').addEventListener('submit', (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const form = e.target; form.classList.add('was-validated');
+        if(!form.checkValidity()) return;
+        const data = Object.fromEntries(new FormData(form).entries());
+        const idx = courses.findIndex(c=>c.ma===data.ma);
+        if(idx>-1){ Object.assign(courses[idx],{ ten:data.ten, tinchi:+data.tinchi, gv:data.gv, khoa:data.khoa, status:data.status }); toast('Đã cập nhật '+data.ma); }
+        else { courses.unshift({ ...data, tinchi:+data.tinchi, created:new Date().toISOString().slice(0,10) }); toast('Đã thêm '+data.ma); }
+        saveCourses();
+        applyFilters();
+        bootstrap.Modal.getInstance(document.getElementById('modalAdd'))?.hide();
+        form.reset(); form.classList.remove('was-validated');
+        document.getElementById('modalTitle').textContent='Thêm môn học';
+      });
+
+      // theme toggle
+      document.getElementById('themeToggle').addEventListener('click', ()=>{
+        const html = document.documentElement;
+        const isLight = html.getAttribute('data-bs-theme') !== 'dark';
+        html.setAttribute('data-bs-theme', isLight? 'dark':'light');
+        document.getElementById('themeToggle').innerHTML = isLight? '<i class="bi bi-brightness-high"></i>' : '<i class="bi bi-moon-stars"></i>';
+      });
+
+      applyFilters();
+    });
+  </script>
+</body>
+</html>

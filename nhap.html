@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sự kiện</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .event-card {
+      border: none;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .event-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover; /* giữ tỉ lệ, ảnh không bị méo */
+      transition: transform 0.3s ease;
+    }
+
+    .event-card:hover img {
+      transform: scale(1.05);
+    }
+
+    .event-card-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      position: relative;
+      display: inline-block;
+      transition: color 0.3s ease;
+    }
+
+    .event-card-title::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 0%;
+      height: 2px;
+      background-color: #d63384;
+      transition: width 0.3s ease;
+    }
+
+    .event-card:hover .event-card-title {
+      color: #d63384;
+    }
+
+    .event-card:hover .event-card-title::after {
+      width: 100%;
+    }
+
+    .badge-custom {
+      font-size: 0.8rem;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      color: #6c757d;
+    }
+    .status-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #212529;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .pagination .page-link {
+      color: #d63384;
+      border-radius: 0 !important;
+      transition: all 0.3s;
+    }
+    .pagination .page-link:hover {
+      background: #f8d7e1;
+      color: #d63384;
+    }
+    .pagination .page-item.active .page-link {
+      background-color: #d63384;
+      border-color: #d63384;
+      color: #fff;
+    }
+  </style>
+    <style>
+    /* Mở rộng container mặc định */
+    .container {
+      max-width: 1400px; /* dài hơn mặc định */
+    }
+
+    .listbox-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .listbox {
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 10px 0;
+    }
+
+    .listbox::-webkit-scrollbar {
+      display: none; /* Ẩn scrollbar */
+    }
+
+    .listbox-item {
+      position: relative;
+      flex: 0 0 auto;
+      min-width: 150px;
+      margin: 0 10px;
+      padding: 15px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    /* Thanh kẻ xuất hiện khi hover */
+    .listbox-item::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 3px;
+      background: #0d6efd; /* màu xanh Bootstrap */
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .listbox-item:hover {
+      opacity: 0.7;
+    }
+
+    .listbox-item:hover::after {
+      transform: scaleY(1); /* Thanh kẻ chạy lên */
+    }
+
+    .arrow-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      border: none;
+      font-size: 24px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .arrow-left {
+      left: 10px;
+    }
+
+    .arrow-right {
+      right: 10px;
+    }
+
+    .arrow-btn:hover {
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+    ">
+  <style>
+    /* Logo giữ tỉ lệ, không làm vỡ header */
+    .logo-img {
+      max-height: 50px;
+      height: auto;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* Xóa viền & shadow của select + input khi hover/focus */
+    .no-border,.no-border:focus,
+    .no-border:hover {
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    
+    .btn-search {
+      border: none;
+      background: transparent;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .custom-btn {
+    background: transparent;
+    border: none;
+    color: #000; /* màu chữ */
+  }
+  .custom-btn:hover {
+    background-color: #f8f9fa; /* xám nhẹ */
+  }
+  .custom-btn:focus {
+    box-shadow: none; /* bỏ viền xanh focus */
+  }
+  </style>
+</head>
+<body>
+  <header class="container-fluid shadow-sm p-2 bg-white fixed-top">
+    <div class="row align-items-center">
+      
+      <div class="col-2 d-flex justify-content-center p-10">
+        <a href="#">
+<img src="data:image/png;base64,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"
+               alt="Logo" class="logo-img">
+        </a>
+      </div>
+
+      <div class="col-7">
+        <form class="row">
+          <div class="col-12 bg-body-secondary rounded-4">
+            <div class="row g-2 align-items-center">
+              <!-- Select -->
+              <div class="col-3">
+                <select class="form-select no-border bg-transparent fw-medium" data-size="6">
+                  <option value="all">Tất cả địa điểm</option>
+                  <option value="angiang">An Giang</option>
+                  <option value="bariavungtau">Bà Rịa – Vũng Tàu</option>
+                  <option value="bacgiang">Bắc Giang</option>
+                  <option value="backan">Bắc Kạn</option>
+                  <option value="baclieu">Bạc Liêu</option>
+                  <option value="bacninh">Bắc Ninh</option>
+                  <option value="bentre">Bến Tre</option>
+<option value="binhduong">Bình Dương</option>
+                  <option value="binhdinh">Bình Định</option>
+                  <option value="binhphuoc">Bình Phước</option>
+                  <option value="binhthuan">Bình Thuận</option>
+                  <option value="camau">Cà Mau</option>
+                  <option value="caobang">Cao Bằng</option>
+                  <option value="cantho">Cần Thơ</option>
+                  <option value="danang">Đà Nẵng</option>
+                  <option value="daklak">Đắk Lắk</option>
+                  <option value="daknong">Đắk Nông</option> 
+                  <option value="dienbien">Điện Biên</option>
+                  <option value="dongnai">Đồng Nai</option>
+                  <option value="dongthap">Đồng Tháp</option>
+                  <option value="gialai">Gia Lai</option>
+                  <option value="hagiang">Hà Giang</option>
+                  <option value="hanam">Hà Nam</option>
+                  <option value="hanoi">Hà Nội</option>
+                  <option value="hatinh">Hà Tĩnh</option>
+                  <option value="haiduong">Hải Dương</option>
+                  <option value="haiphong">Hải Phòng</option>
+                  <option value="haugiang">Hậu Giang</option>
+                  <option value="hoabinh">Hòa Bình</option>
+                  <option value="hungyen">Hưng Yên</option>
+                  <option value="khanhhoa">Khánh Hòa</option>
+                  <option value="kiengiang">Kiên Giang</option>
+                  <option value="kontum">Kon Tum</option>
+                  <option value="laichau">Lai Châu</option>
+                  <option value="lamdong">Lâm Đồng</option>
+                  <option value="langson">Lạng Sơn</option>
+                  <option value="laocai">Lào Cai</option>
+                  <option value="longan">Long An</option>
+                  <option value="namdinh">Nam Định</option>
+                  <option value="nghean">Nghệ An</option>
+                  <option value="ninhbinh">Ninh Bình</option>
+                  <option value="ninhthuan">Ninh Thuận</option>
+                  <option value="phutho">Phú Thọ</option>
+                  <option value="phuyen">Phú Yên</option>
+                  <option value="quangbinh">Quảng Bình</option>
+                  <option value="quangnam">Quảng Nam</option>
+                  <option value="quangngai">Quảng Ngãi</option>
+                  <option value="quangninh">Quảng Ninh</option>
+                  <option value="quangtri">Quảng Trị</option>
+                  <option value="soctrang">Sóc Trăng</option>
+                  <option value="sonla">Sơn La</option>
+                  <option value="tayninh">Tây Ninh</option>
+                  <option value="thaibinh">Thái Bình</option>
+                  <option value="thainguyen">Thái Nguyên</option>
+                  <option value="thanhhoa">Thanh Hóa</option>
+<option value="thuathienhue">Thừa Thiên Huế</option>
+                  <option value="tiengiang">Tiền Giang</option>
+                  <option value="tphcm">TP Hồ Chí Minh</option>
+                  <option value="travinh">Trà Vinh</option>
+                  <option value="tuyenquang">Tuyên Quang</option>
+                  <option value="vinhlong">Vĩnh Long</option>
+                  <option value="vinhphuc">Vĩnh Phúc</option>
+                  <option value="yenbai">Yên Bái</option>
+                </select>
+              </div>
+              <!-- Input + button -->
+              <div class="col-9 d-flex">
+                <input type="text" class="form-control bg-transparent no-border"
+                       placeholder="Nhập từ khóa...">
+                <button type="submit" class="btn-search">
+                  <i class="bi bi-search fs-5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    
+      <div class="col-3 d-flex justify-content-end gap-2">
+        <select class="form-select no-border bg-transparent fw-medium" data-size="6">
+            <option value="all">Ngôn Ngữ</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+        </select>
+        <button class="btn custom-btn rounded-4 px-4"><a href="thi.html">Đăng ký</a></button>
+        <button class="btn custom-btn rounded-4 px-4">Đăng nhập</button>
+      </div>
+    </div>
+  </header>
+
+
+
+    <!-- Banner nhỏ gọn -->
+<div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel" style="margin-top: 50px;">
+  <div class="carousel-inner">
+
+    <!-- Slide 1 -->
+    <div class="carousel-item active">
+      <img src="https://assets.cticket.vn/tix/ENCORE-GEMINIGHT-FANMEETING-2025/Thumbnail%201600x900.webp?w=2772&q=75" 
+           class="d-block w-100" alt="Sự kiện 1" style="height: 450px; object-fit: cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h2 class="fw-bold">Sự kiện âm nhạc lớn nhất năm 🎶</h2>
+        <p>Trải nghiệm không gian âm nhạc đỉnh cao cùng những nghệ sĩ hàng đầu.</p>
+        <a href="#" class="btn btn-danger btn-sm">Đăng ký ngay</a>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="carousel-item">
+      <img src="https://assets.cticket.vn/tix/bo-tem-buu-chinh-ky-niem-02-09/Thumbnail_TEM0209.webp?w=2772&q=75" 
+           class="d-block w-100" alt="Sự kiện 2" style="height: 450px; object-fit: cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h2 class="fw-bold">Đêm nhạc hoành tráng</h2>
+        <p>Âm nhạc, ánh sáng và không khí cuồng nhiệt đang chờ bạn!</p>
+        <a href="#" class="btn btn-warning btn-sm">Mua vé ngay</a>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="carousel-item">
+      <img src="https://assets.cticket.vn/tix/eifman-ballet-world-tour-anna-karenina/C%20Ticket%20thumbnail_1600-x-900.webp?w=2772&q=75" 
+           class="d-block w-100" alt="Sự kiện 3" style="height: 450px; object-fit: cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h2 class="fw-bold">Kết nối cùng bạn bè</h2>
+        <p>Tận hưởng khoảnh khắc đáng nhớ cùng hàng ngàn khán giả.</p>
+        <a href="#" class="btn btn-success btn-sm">Tham gia ngay</a>
+      </div>
+    </div>
+
+    
+
+  </div>
+
+  <!-- Nút điều hướng trái/phải -->
+<button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon bg-dark rounded-circle p-3"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon bg-dark rounded-circle p-3"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+
+  <!-- Dấu chấm chỉ số -->
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="0" class="active"></button>
+    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="1"></button>
+    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="2"></button>
+  </div>
+</div>
+      <div class="container">
+    <div class="listbox-wrapper">
+      <button class="arrow-btn arrow-left" onclick="scrollList(-1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="listbox" id="listbox">
+        <div class="listbox-item">Tất cả thể loại</div>
+        <div class="listbox-item">Nhạc sống </div>
+        <div class="listbox-item">Fan meeting</div>
+        <div class="listbox-item">Merchandise</div>
+        <div class="listbox-item">Sân khấu & Nghệ Thuật</div>
+        <div class="listbox-item">Thể thao</div>
+        <div class="listbox-item">Hội thảo và cộng đồng</div>
+        <div class="listbox-item">Khóa Học</div>
+        <div class="listbox-item">NightLife</div>
+        <div class="listbox-item">Liverstream</div>
+        <div class="listbox-item">Thăm quan du lịch</div>
+      </div>
+
+      <button class="arrow-btn arrow-right" onclick="scrollList(1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function scrollList(direction) {
+      const listbox = document.getElementById('listbox');
+      const scrollAmount = 200; // khoảng cách cuộn
+      listbox.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+  </script>
+
+    
+    <!--content-->
+  <div class="container mt-4">
+    <div class="row g-4 mt-4">
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/ENCORE-GEMINIGHT-FANMEETING-2025/Thumbnail%201600x900.webp?w=2772&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-success">Fan Meeting</span>
+            <p class="text-muted mb-1">Hà Nội, 19 tháng 9, 2025</p>
+            <h5 class="event-card-title">ENCORE GEMINIGHT FAN MEETING 2025</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/the-next-live-concert-ha-noi/hanoi%20(1600%20x%20900%20px).webp?w=2772&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-danger">Nhạc sống</span>
+            <p class="text-muted mb-1">Hà Nội, 25 tháng 10, 2025</p>
+            <h5 class="event-card-title">THE NEXT LIVE CONCERT – HÀ NỘI</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/liveconcert-2025-dan-truong-30-nam-dau-an-thanh-xuan/thumbnail_1600x900.webp?w=2772&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-primary">Nhạc sống</span>
+            <p class="text-muted mb-1">Hà Nội, 01 tháng 11, 2025</p>
+            <h5 class="event-card-title">LIVE CONCERT 2025 – ĐAN TRƯỜNG 30 NĂM</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/bo-tem-buu-chinh-ky-niem-02-09/Thumbnail_TEM0209.webp?w=2772&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-warning text-dark">Merchandise</span>
+            <p class="text-muted mb-1">Việt Nam, 31 tháng 12, 2025</p>
+            <h5 class="event-card-title">BỘ TEM BƯU CHÍNH KỶ NIỆM 80 NĂM QUỐC KHÁNH</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-4 mt-4">
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/giai-chay-hong-pink-run-2025/KV%20pinkrun%20-1600%20x%20900.webp?w=2772&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-success">Fan Meeting</span>
+            <p class="text-muted mb-1">Hà Nội, 19 tháng 9, 2025</p>
+            <h5 class="event-card-title">ENCORE GEMINIGHT FAN MEETING 2025</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/merchandise-tu-do-doc-quyen-cake-by-vpbank/1600%20x%20900.webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-danger">Thể thao</span>
+            <p class="text-muted mb-1">Hồ Chí Minh City, 25 tháng 10, 2025</p>
+            <h5 class="event-card-title">Pink Run - Giải chạy hồng 2025</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/eifman-ballet-world-tour-anna-karenina/C%20Ticket%20thumbnail_1600-x-900.webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-primary">Merchandise</span>
+            <p class="text-muted mb-1">Việt Nam, 31 tháng 12, 2025</p>
+            <h5 class="event-card-title">MERCHANDISE "TỰ DO" ĐỌC QUYỀN</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/no-headliner-4-music-festival-2025/new/2.%201600-x-900-thumb.webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-warning text-dark">Merchandise</span>
+            <p class="text-muted mb-1">Việt Nam, 31 tháng 12, 2025</p>
+            <h5 class="event-card-title">BỘ TEM BƯU CHÍNH KỶ NIỆM 80 NĂM QUỐC KHÁNH</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-4 mt-4">
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/2025-merchandise-the-next-hcm/MERCH(1600%20x%20900%20px).webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-success">Fan Meeting</span>
+            <p class="text-muted mb-1">Hà Nội, 19 tháng 9, 2025</p>
+            <h5 class="event-card-title">ENCORE GEMINIGHT FAN MEETING 2025</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/vietnam-women-run-2025/THUMNAIL_1600x900.webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-danger">Nhạc sống</span>
+            <p class="text-muted mb-1">Hà Nội, 25 tháng 10, 2025</p>
+            <h5 class="event-card-title">THE NEXT LIVE CONCERT – HÀ NỘI</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/official-md-cinelove-phan-manh-quynh-1420/THUMBNAIL%20(1)%20(1).webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-primary">Nhạc sống</span>
+            <p class="text-muted mb-1">Hà Nội, 01 tháng 11, 2025</p>
+            <h5 class="event-card-title">LIVE CONCERT 2025 – ĐAN TRƯỜNG 30 NĂM</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card">
+          <img src="https://assets.cticket.vn/tix/tang-phuc-x-loreal-paris-dac-quyen-so-huu-doll-ca-map-can/1600x900_3_800x450.webp?w=1500&q=75" class="card-img-top" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-warning text-dark">Merchandise</span>
+            <p class="text-muted mb-1">Việt Nam, 31 tháng 12, 2025</p>
+            <h5 class="event-card-title">BỘ TEM BƯU CHÍNH KỶ NIỆM 80 NĂM QUỐC KHÁNH</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-4 mt-4">
+      <div class="col-md-3">
+        <div class="card event-card position-relative">
+          <span class="status-label">Hết hàng</span>
+          <img src="https://assets.cticket.vn/tix/merchandise-unfrozen-by-han-sara/CTICKET_THUMBNAIL_1600x900.webp?w=2772&q=75" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-secondary">Merchandise</span>
+            <p class="text-muted mb-1">Hồ Chí Minh, 31 tháng 12, 2025</p>
+            <h5 class="event-card-title">MERCHANDISE & ĐĨA CD ĐỘC QUYỀN - UNFROZEN BY HAN SARA</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card position-relative">
+          <span class="status-label">Đã đóng</span>
+          <img src="https://assets.cticket.vn/tix/truant-fu-the-2nd-date-0207/truanfu1600x900px.webp?w=2772&q=75" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-danger">Nhạc sống</span>
+            <p class="text-muted mb-1">Hà Nội, 29 tháng 7, 2025</p>
+            <h5 class="event-card-title">Truant Fu The 2nd Date</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card position-relative">
+          <span class="status-label">Đã bán hết vé</span>
+          <img src="https://assets.cticket.vn/tix/legend-fest-2025-tinh-hoa-tren-nen-di-san/LEGENDFEST_KV_1600x900px-01_v4.webp?w=2772&q=75" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-primary">Nhạc sống</span>
+            <p class="text-muted mb-1">Đà Nẵng, 16 tháng 8, 2025</p>
+            <h5 class="event-card-title">Legend Fest 2025 | Tinh hoa trên nền di sản</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card event-card position-relative">
+          <span class="status-label">Đã đóng</span>
+          <img src="https://assets.cticket.vn/tix/2025-bi-tour-the-last-parade-tour-in-ho-chi-minh-1415/B.I%20tour%201600Wx900Hpx.webp?w=2772&q=75" alt="Event">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-pink">Nhạc sống</span>
+            <p class="text-muted mb-1">Hồ Chí Minh, 23 tháng 8, 2025</p>
+            <h5 class="event-card-title">2025 B.I TOUR: The Last Parade Tour in HO CHI MINH</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+ <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link" href="#">Trước</a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+          <a class="page-link" href="#">Sau</a>
+        </li>
+      </ul>
+    </nav>
+
+  </div>
+  </div>
+  <footer class="bg-dark text-light pt-5">
+      <div class="container">
+        <div class="row mb-5">
+          <!-- Cột 1: Logo + Slogan -->
+          <div class="col-md-3 mb-4">
+        
+            <p>Nền tảng bán vé trực tuyến hàng đầu Việt Nam.</p>
+            <p>CTicket – Mua vé dễ dàng, nâng tầm trải nghiệm.</p>
+          </div>
+
+          <!-- Cột 2: CTicket xin chào! -->
+          <div class="col-md-3 mb-4">
+            <h6 class="text-uppercase text-muted">CTicket xin chào!</h6>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light text-decoration-none">Về chúng tôi</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Quy chế hoạt động</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Chính sách bảo mật thông tin</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Chính sách bảo mật thanh toán</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Phương thức thanh toán</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Đối tác của chúng tôi</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Điều khoản sử dụng</a></li>
+            </ul>
+          </div>
+
+          <!-- Cột 3: Dịch vụ và Ưu đãi -->
+          <div class="col-md-3 mb-4">
+            <h6 class="text-uppercase text-muted">Dịch vụ và Ưu đãi</h6>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light text-decoration-none">Dành cho Khách hàng</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Khuyến mãi</a></li>
+            </ul>
+          </div>
+
+          <!-- Cột 4: Liên hệ & Hỗ trợ -->
+          <div class="col-md-3 mb-4">
+            <h6 class="text-uppercase text-muted">Liên hệ và Hỗ trợ</h6>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light text-decoration-none">Liên hệ chúng tôi</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Câu hỏi thường gặp</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Bài viết liên quan</a></li>
+              <li><a href="#" class="text-light text-decoration-none">Hướng dẫn sử dụng</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Thông tin công ty -->
+        <div class="row align-items-center">
+          <div class="col-md-9">
+            <p class="mb-1"><strong>Công ty TNHH BeFinancial</strong></p>
+            <p class="mb-1">Đại diện theo pháp luật: Nguyễn Trường Giang</p>
+            <p class="mb-1">
+              Địa chỉ: Tầng 16, Tòa nhà Sai Gon Tower, 29 Lê Duẩn, Phường Bến Nghé, Quận 1,
+              Thành phố Hồ Chí Minh, Việt Nam
+            </p>
+            <p class="mb-1">
+Đăng ký kinh doanh số: 0315728586 cấp ngày 10/06/2019 tại Phòng Đăng ký kinh doanh
+              – Sở Kế hoạch và Đầu tư Thành phố Hồ Chí Minh
+            </p>
+            <p class="mb-1">Hotline: 1900 636 686</p>
+            <p class="mb-3">
+              Email:
+              <a href="mailto:chat@cticket.vn" class="text-light text-decoration-none">chat@cticket.vn</a>
+            </p>
+          </div>
+
+          <!-- Logo đăng ký -->
+          
+        </div>
+
+        <!-- Line -->
+        <hr class="border-secondary my-4" />
+
+        <!-- Bản quyền + social -->
+        <div
+          class="d-flex justify-content-between align-items-center pb-3 flex-column flex-md-row"
+        >
+          <p class="mb-2 mb-md-0">All rights reserved 2025 © CTicket</p>
+          <a href="#" class="text-light fs-5">
+            <i class="bi bi-facebook"></i>
+          </a>
+        </div>
+      </div>
+    </footer>
+</body>
+  <script>
+    const pagination = document.querySelector('.pagination');
+    const pages = pagination.querySelectorAll('.page-item');
+    const prev = pages[0];
+    const next = pages[pages.length - 1];
+
+    pages.forEach((page, index) => {
+      const link = page.querySelector('.page-link');
+      if (index !== 0 && index !== pages.length - 1) {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          // Xóa active cũ
+          pages.forEach(p => p.classList.remove('active'));
+          // Set active mới
+          page.classList.add('active');
+
+          // Enable / disable prev, next
+          const pageNum = parseInt(link.textContent);
+          prev.classList.toggle('disabled', pageNum === 1);
+          next.classList.toggle('disabled', pageNum === pages.length - 2);
+        });
+      }
+    });
+
+    // Xử lý Prev
+    prev.querySelector('.page-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      const current = pagination.querySelector('.page-item.active');
+      const prevPage = current.previousElementSibling;
+      if (prevPage && prevPage !== prev) {
+        current.classList.remove('active');
+        prevPage.classList.add('active');
+        const pageNum = parseInt(prevPage.textContent);
+        prev.classList.toggle('disabled', pageNum === 1);
+        next.classList.toggle('disabled', pageNum === pages.length - 2);
+      }
+    });
+
+    // Xử lý Next
+    next.querySelector('.page-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      const current = pagination.querySelector('.page-item.active');
+      const nextPage = current.nextElementSibling;
+      if (nextPage && nextPage !== next) {
+        current.classList.remove('active');
+        nextPage.classList.add('active');
+        const pageNum = parseInt(nextPage.textContent);
+        prev.classList.toggle('disabled', pageNum === 1);
+        next.classList.toggle('disabled', pageNum === pages.length - 2);
+      }
+    });
+  </script>
+          <script
+            src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous"
+        ></script>
+
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+            integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+            crossorigin="anonymous"
+        ></script>
+</html>
